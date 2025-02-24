@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sist.bbs_0220.mapper.BbsMapper">
+
+	<resultMap type="com.sist.bbs_0220.vo.BbsVO" id="map1">
+		<id property="b_idx" column="b_idx"/>
+		<collection property="c_list" ofType="com.sist.bbs_0220.vo.CommVO" 
+			select="com.sist.bbs_0220.mapper.CommMapper.commList" column="b_idx"/>
+	</resultMap>
+
+	<!-- 총 게시물 수를 반환하는 기능 -->
+	<select id="totalCount" resultType="int" parameterType="Map">
+		SELECT COUNT(*) FROM bbs_t
+		<where>
+		status = 0 AND bname = #{bname}
+			<if test="searchType != null and searchValue != null">
+				<choose>
+					<when test="searchType == 0">
+						AND subject LIKE CONCAT('%', #{searchValue}, '%')
+					</when>
+					<when test="searchType == 1">
+						AND content LIKE CONCAT('%', #{searchValue}, '%')
+					</when>
+					<when test="searchType == 2">
+						AND writer LIKE CONCAT('%', #{searchValue}, '%')
+					</when>
+					<when test="searchType == 3">
+						AND write_date LIKE CONCAT('%', #{searchValue}, '%')
+					</when>
+				</choose>
+			</if>
+		</where>
+	</select>
+
+	<!--  원글들을 가져오는 기능 (status가 1이면 삭제된 글,
+		정렬로 가장 최근의 글을 맨 위로 올라오게 해야 함!) -->
+	<select id="list" resultMap="map1" parameterType="Map">
+		SELECT * FROM(
+			SELECT @RN:=@RN+1 AS rnum, a.* FROM(
+				SELECT * FROM bbs_t
+				<where>
+				status = 0 AND bname = #{bname}
+					<if test="searchType != null and searchValue != null">
+						<choose>
+							<when test="searchType == 0">
+								AND subject LIKE CONCAT('%', #{searchValue}, '%')
+							</when>
+							<when test="searchType == 1">
+								AND content LIKE CONCAT('%', #{searchValue}, '%')
+							</when>
+							<when test="searchType == 2">
+								AND writer LIKE CONCAT('%', #{searchValue}, '%')
+							</when>
+							<when test="searchType == 3">
+								AND write_date LIKE CONCAT('%', #{searchValue}, '%')
+							</when>
+						</choose>
+					</if>
+				</where>
+				ORDER BY b_idx DESC
+			) a, (SELECT @RN:=0) b
+		) c WHERE c.rnum BETWEEN #{begin} AND #{end}
+	</select>
+	
+	<!-- 저장 -->
+	<insert id="add" parameterType="com.sist.bbs_0220.vo.BbsVO">
+		INSERT INTO bbs_t(subject, writer, content, file_name, ori_name, pwd, write_date,
+				ip, hit, bname, status)
+		VALUES(#{subject}, #{writer}, #{content}, #{file_name}, 
+				#{ori_name}, #{pwd}, NOW(), #{ip}, 0, "BBS", 0)
+	</insert>
+	
+	<!-- b_idx인자를 받아서 해당 게시물을 반환 -->
+	<select id="get_Bbs" parameterType="String" resultMap="map1">
+		SELECT * FROM bbs_t
+		WHERE b_idx = #{b_idx}
+	</select>
+	
+	<!-- 조회수 증가 -->
+	<update id="hit" parameterType="String">
+		UPDATE bbs_t
+		SET hit = hit+1
+		WHERE b_idx = #{b_idx}
+	</update>
+
+	
+	<!-- 원글 수정 -->
+	<update id="edit" parameterType="Map">
+		UPDATE bbs_t
+		<trim prefix="SET" suffixOverrides=",">
+			subject = #{subject},
+			content = #{content},
+			<if test="fname != null">
+				file_name = #{file_name},
+				ori_name = #{ori_name}
+			</if>
+		</trim>
+		WHERE b_idx = #{b_idx} AND pwd = #{pwd}
+	</update>
+
+	
+	<!-- 원글 삭제 -->
+	<update id="del" parameterType="Map">
+		UPDATE bbs_t
+		SET status = 1
+		WHERE b_idx = #{b_idx} AND pwd= #{pwd}
+	</update>
+</mapper>

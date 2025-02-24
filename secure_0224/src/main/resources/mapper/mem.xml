@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.secure_0224.mapper.MemberMapper">
+  <!--회원등록-->
+  <insert id="reg" parameterType="com.example.secure_0224.vo.MemVO">
+    INSERT INTO member_t (m_id, m_pw, m_name, m_email)
+    VALUES (#{m_id}, #{m_pw}, #{m_name}, #{m_email})
+  </insert>
+
+  <!--회원로그인-->
+  <!--아이디는 인자값으로 받아야하는데, 비밀번호는 암호화 시켜놨기 때문에 비교할 수 없다.
+  아이디만 들어가고, 패스워드가 암호화되서 들어가서 여기서는 비교는 안된다.
+  java쪽에서 암호화가 된 것을 비교하게 끔 만든다.-->
+  <select id="login" parameterType="String" resultType="com.example.secure_0224.vo.MemVO">
+    SELECT *
+    FROM member_T
+    WHERE m_id = #{mid}
+  </select>
+</mapper>
+
+
+
+
+
+
