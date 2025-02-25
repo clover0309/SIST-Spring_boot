@@ -47,6 +47,10 @@ public class MemberController {
   public ModelAndView reg(MemVO vo) {
     // 서비스를 이용하여 회원가입.
     int cnt = m_service.regMember(vo);
+
+    // 저장 후 기본키가 존재하는지 확인
+    System.out.println("Member 기본키 : " + vo.getM_idx());
+
     ModelAndView mv = new ModelAndView();
     mv.setViewName("index");
     return mv;

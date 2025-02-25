@@ -54,7 +54,7 @@ public class JwtProvider {
     return jwt;
   }
 
-  // 토큰이 만료되었는지 확인하는 함수수
+  // 토큰이 만료되었는지 확인하는 함수
   public boolean verify(String token) {
     // value가 false가 되면 사용할수 없는 토큰이된다.
     boolean value = true;
